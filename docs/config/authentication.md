@@ -1,6 +1,6 @@
 # Authentication
 
-Servers authenthicate with Mojang's session servers in order to ensure the client is playing on a legitmate, paid account. Pumpkin allows you to fully configure authentication.
+Servers authenthicate with Mojang's session servers in order to ensure the client is playing on a legitimate, paid account. Pumpkin allows you to fully configure authentication.
 
 ## Configuring Authentication
 

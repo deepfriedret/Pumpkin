@@ -17,7 +17,7 @@ More details can be found on the [Minecraft Wiki](https://minecraft.wiki/w/Regio
 Replacing the Region File Format after Minecraft Release 1.2, this is the file format used to store modern vanilla Java Minecraft worlds.
 
 The files stored in this format are .mca files, while using the same region logic, there were a number of changes. The notable changes include an increase
-to a 256 hight limit, then to 320, as well as a higher number of block ID's.
+to a 256 height limit, then to 320, as well as a higher number of block ID's.
 
 More details can be found on the [Minecraft Wiki](https://minecraft.wiki/w/Anvil_file_format).
 
@@ -58,7 +58,7 @@ Pumpkin then calls for World Generation:
 AnvilChunkReader is called to process the region files for the given save
 
 -   As stated above, region files store 32x32 chunks
-    > Each region file is named corrosponding to coordinates of where it is in the world
+    > Each region file is named corresponding to coordinates of where it is in the world
 
 > r.{}.{}.mca
 
@@ -78,7 +78,7 @@ PlainsGenerator is called, as so far the plains is the only biome that has been 
 -   Bedrock is set at y = -64
 -   Flowers and short grass are scattered about randomly
 
-SuperflatGenerator is also avaliable, but is not currently callable.
+SuperflatGenerator is also available, but is not currently callable.
 
 -   Bedrock is set at y = -64
 -   Dirt is set two blocks up

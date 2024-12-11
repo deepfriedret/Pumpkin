@@ -112,7 +112,7 @@ impl CPlayDisconnect {
 
 ### Adding a Serverbound Packet
 
-1. Adding a Packet is easy. First, you have to derive serde Deserialize for packets. You should also use the `server_packet` macro to automaticly parse the Packet ID
+1. Adding a Packet is easy. First, you have to derive serde Deserialize for packets. You should also use the `server_packet` macro to automatically parse the Packet ID
 
 ```rust
 #[derive(Deserialize)]

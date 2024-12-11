@@ -1,5 +1,5 @@
 # Compression
-Compression is used to reduce the size of packets. This is benefical to reduce bandwidth server side and also to help players on slower internet connections.
+Compression is used to reduce the size of packets. This is beneficial to reduce bandwidth server side and also to help players on slower internet connections.
 
 ## Configuring Compression
 
@@ -7,7 +7,7 @@ Compression is used to reduce the size of packets. This is benefical to reduce b
 Whether packet compression is enabled or not.
 
 > [!TIP]
-> It might be benefical to disable compression if the server is behind a proxy.
+> It might be beneficial to disable compression if the server is behind a proxy.
 
 :::code-group
 ```toml [features.toml] {2}
