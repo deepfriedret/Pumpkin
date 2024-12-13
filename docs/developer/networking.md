@@ -103,7 +103,7 @@ impl CPlayDisconnect {
 -#[derive(Serialize)]
 
 + impl ClientPacket for CPlayDisconnect {
-+    fn write(&self, bytebuf: &mut crate::bytebuf::ByteBuffer) {
++    fn write(&self, bytebuf: &mut BytesMut) {
 +       bytebuf.put_slice(&self.reason.encode());
 +    }
 ```
@@ -160,12 +160,12 @@ pub struct SPlayerPosition {
 -#[derive(Deserialize)]
 
 + impl ServerPacket for SPlayerPosition {
-+    fn read(bytebuf: &mut ByteBuffer) -> Result<Self, DeserializerError> {
++    fn read(bytebuf: &mut Bytes) -> Result<Self, ReadingError> {
 +       Ok(Self {
-+           x: bytebuf.get_f64()?,
-+           feet_y: bytebuf.get_f64()?,
-+           z: bytebuf.get_f64()?,
-+           ground: bytebuf.get_bool()?,
++           x: bytebuf.try_get_f64()?,
++           feet_y: bytebuf.try_get_f64()?,
++           z: bytebuf.try_get_f64()?,
++           ground: bytebuf.try_get_bool()?,
 +       })
 +    }
 ```
@@ -208,7 +208,7 @@ For Clients:
   &self,
     server: &Arc<Server>,
     packet: &mut RawPacket,
-) -> Result<(), DeserializerError> {
+) -> Result<(), ReadingError> {
     let bytebuf = &mut packet.bytebuf;
     match packet.id.0 {
         SStatusRequest::PACKET_ID => {
@@ -239,7 +239,7 @@ For Players:
   &self,
     server: &Arc<Server>,
     packet: &mut RawPacket,
-) -> Result<(), DeserializerError> {
+) -> Result<(), ReadingError> {
     let bytebuf = &mut packet.bytebuf;
     match packet.id.0 {
         SChatMessage::PACKET_ID => {
