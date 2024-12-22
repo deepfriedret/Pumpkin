@@ -1,10 +1,11 @@
 use std::fmt::{Display, Write};
 
 use tokio::runtime::{Builder, Runtime};
-use world::World;
 
 pub mod protocal;
 pub mod world;
+
+pub use world::World;
 
 struct Server<W: World> {
     runtime: Runtime,
