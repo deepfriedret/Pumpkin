@@ -8,6 +8,7 @@ members = [
     "pumpkin-macros/",
     "pumpkin-protocol/",
     "pumpkin-registry/",
+    "pumpkin-server",
     "pumpkin-world",
     "pumpkin/",
 ]
