@@ -1,11 +1,11 @@
-use std::num::NonZeroUsize;
+use std::{num::NonZeroUsize, ops::Deref};
 
+use super::{Codec, DecodeError};
 use bytes::{Buf, BufMut};
 use serde::{
     de::{self, SeqAccess, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use thiserror::Error;
 
 pub type VarLongType = i64;
 
@@ -15,45 +15,45 @@ pub type VarLongType = i64;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VarLong(pub VarLongType);
 
-impl VarLong {
-    /// The maximum number of bytes a `VarLong`
-    pub const MAX_SIZE: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) };
+impl Codec<Self> for VarLong {
+    /// The maximum number of bytes a `VarLong` can occupy.
+    const MAX_SIZE: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) };
 
     /// Returns the exact number of bytes this varlong will write when
     /// [`Encode::encode`] is called, assuming no error occurs.
-    pub const fn written_size(self) -> usize {
+    fn written_size(&self) -> usize {
         match self.0 {
             0 => 1,
             n => (31 - n.leading_zeros() as usize) / 7 + 1,
         }
     }
 
-    pub fn encode(&self, w: &mut impl BufMut) {
+    fn encode(&self, write: &mut impl BufMut) {
         let mut x = self.0;
         for _ in 0..Self::MAX_SIZE.get() {
             let byte = (x & 0x7F) as u8;
             x >>= 7;
             if x == 0 {
-                w.put_slice(&[byte]);
+                write.put_slice(&[byte]);
                 break;
             }
-            w.put_slice(&[byte | 0x80]);
+            write.put_slice(&[byte | 0x80]);
         }
     }
 
-    pub fn decode(r: &mut impl Buf) -> Result<Self, VarLongDecodeError> {
+    fn decode(read: &mut impl Buf) -> Result<Self, DecodeError> {
         let mut val = 0;
         for i in 0..Self::MAX_SIZE.get() {
-            if !r.has_remaining() {
-                return Err(VarLongDecodeError::Incomplete);
+            if !read.has_remaining() {
+                return Err(DecodeError::Incomplete);
             }
-            let byte = r.get_u8();
+            let byte = read.get_u8();
             val |= (i64::from(byte) & 0b01111111) << (i * 7);
             if byte & 0b10000000 == 0 {
                 return Ok(VarLong(val));
             }
         }
-        Err(VarLongDecodeError::TooLarge)
+        Err(DecodeError::TooLarge)
     }
 }
 
@@ -87,12 +87,18 @@ impl From<VarLong> for i64 {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Error)]
-pub enum VarLongDecodeError {
-    #[error("incomplete VarLong decode")]
-    Incomplete,
-    #[error("VarLong is too large")]
-    TooLarge,
+impl AsRef<i64> for VarLong {
+    fn as_ref(&self) -> &i64 {
+        &self.0
+    }
+}
+
+impl Deref for VarLong {
+    type Target = i64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl Serialize for VarLong {

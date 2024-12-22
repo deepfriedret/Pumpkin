@@ -1,11 +1,11 @@
-use std::num::NonZeroUsize;
+use std::{num::NonZeroUsize, ops::Deref};
 
+use super::{Codec, DecodeError};
 use bytes::{Buf, BufMut};
 use serde::{
     de::{SeqAccess, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use thiserror::Error;
 
 pub type VarIntType = i32;
 
@@ -15,44 +15,44 @@ pub type VarIntType = i32;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VarInt(pub VarIntType);
 
-impl VarInt {
+impl Codec<Self> for VarInt {
     /// The maximum number of bytes a `VarInt` can occupy.
-    pub const MAX_SIZE: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(5) };
+    const MAX_SIZE: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(5) };
 
     /// Returns the exact number of bytes this varint will write when
     /// [`Encode::encode`] is called, assuming no error occurs.
-    pub const fn written_size(self) -> usize {
+    fn written_size(&self) -> usize {
         match self.0 {
             0 => 1,
             n => (31 - n.leading_zeros() as usize) / 7 + 1,
         }
     }
 
-    pub fn encode(&self, w: &mut impl BufMut) {
+    fn encode(&self, write: &mut impl BufMut) {
         let mut val = self.0;
         for _ in 0..Self::MAX_SIZE.get() {
             let b: u8 = val as u8 & 0b01111111;
             val >>= 7;
-            w.put_u8(if val == 0 { b } else { b | 0b10000000 });
+            write.put_u8(if val == 0 { b } else { b | 0b10000000 });
             if val == 0 {
                 break;
             }
         }
     }
 
-    pub fn decode(r: &mut impl Buf) -> Result<Self, VarIntDecodeError> {
+    fn decode(read: &mut impl Buf) -> Result<Self, DecodeError> {
         let mut val = 0;
         for i in 0..Self::MAX_SIZE.get() {
-            if !r.has_remaining() {
-                return Err(VarIntDecodeError::Incomplete);
+            if !read.has_remaining() {
+                return Err(DecodeError::Incomplete);
             }
-            let byte = r.get_u8();
+            let byte = read.get_u8();
             val |= (i32::from(byte) & 0x7F) << (i * 7);
             if byte & 0x80 == 0 {
                 return Ok(VarInt(val));
             }
         }
-        Err(VarIntDecodeError::TooLarge)
+        Err(DecodeError::TooLarge)
     }
 }
 
@@ -86,12 +86,18 @@ impl From<VarInt> for i32 {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Error)]
-pub enum VarIntDecodeError {
-    #[error("Incomplete VarInt decode")]
-    Incomplete,
-    #[error("VarInt is too large")]
-    TooLarge,
+impl AsRef<i32> for VarInt {
+    fn as_ref(&self) -> &i32 {
+        &self.0
+    }
+}
+
+impl Deref for VarInt {
+    type Target = i32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl Serialize for VarInt {
